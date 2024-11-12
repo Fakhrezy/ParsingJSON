@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Cuaca</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+        caption {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        canvas {
+            margin-top: 20px;
+            max-width: 100%;
+        }
+    </style>
+    <!-- Tambahkan Library Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <h1>Data Cuaca</h1>
+
+    <!-- Bagian untuk Menampilkan Summary -->
+    <div id="summary">
+        <p><strong>Suhu Maksimum:</strong> <span id="suhumax"></span>°C</p>
+        <p><strong>Suhu Minimum:</strong> <span id="suhumin"></span>°C</p>
+        <p><strong>Suhu Rata-Rata:</strong> <span id="suhurata"></span>°C</p>
+    </div>
+
+    <!-- Tabel untuk Menampilkan Data Maksimum Suhu dan Kelembaban -->
+    <table id="nilaiTable">
+        <caption>Nilai Suhu dan Kelembaban Maksimum</caption>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Suhu (°C)</th>
+                <th>Kelembaban (%)</th>
+                <th>Kecerahan (lux)</th>
+                <th>Waktu</th>
+            </tr>
+        </thead>
+        <tbody id="nilaiTableBody">
+            <!-- Baris data akan diisi oleh JavaScript -->
+        </tbody>
+    </table>
+
+    <!-- Tempat untuk Grafik -->
+    <canvas id="suhuHumidChart"></canvas>
+
+    <script>
+        const url = 'http://localhost/PrakIOT/uts/uts.php?Show=summary';
+
+        async function fetchData() {
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Menampilkan summary suhu
+                document.getElementById('suhumax').textContent = data.suhumax;
+                document.getElementById('suhumin').textContent = data.suhumin;
+                document.getElementById('suhurata').textContent = data.suhurata;
+
+                // Menampilkan data nilai suhu dan kelembaban maksimum dalam tabel
+                const nilaiTableBody = document.getElementById('nilaiTableBody');
+                data.nilai_suhu_max_humid_max.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.id}</td>
+                        <td>${item.suhu}</td>
+                        <td>${item.humid}</td>
+                        <td>${item.kecerahan}</td>
+                        <td>${item.timestamp}</td>
+                    `;
+                    nilaiTableBody.appendChild(row);
+                });
+
+                // Ekstrak data untuk grafik suhu dan kelembaban maksimum
+                const timestamps = data.nilai_suhu_max_humid_max.map(item => item.timestamp);
+                const suhuData = data.nilai_suhu_max_humid_max.map(item => item.suhu);
+                const humidData = data.nilai_suhu_max_humid_max.map(item => item.humid);
+
+                // Menampilkan grafik suhu dan kelembaban maksimum
+                const suhuHumidChart = document.getElementById('suhuHumidChart').getContext('2d');
+                new Chart(suhuHumidChart, {
+                    type: 'line',
+                    data: {
+                        labels: timestamps, // Timestamp sebagai label sumbu x
+                        datasets: [
+                            {
+                                label: 'Suhu Maksimum (°C)',
+                                data: suhuData, // Data suhu
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Kelembaban Maksimum (%)',
+                                data: humidData, // Data kelembaban
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Grafik Suhu dan Kelembaban Maksimum'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Nilai'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Waktu'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Gagal mengambil data:', error);
+            }
+        }
+
+        // Panggil fungsi fetchData saat halaman dimuat
+        window.onload = fetchData;
+    </script>
+
+</body>
+</html>

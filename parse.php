@@ -5,7 +5,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Headers: Content-Type");
 
-if (isset($_GET["Show"]) && $_GET["Show"] === "summary") {
+if (isset($_GET["Show"]) && $_GET["Show"] === "summary") { //http://localhost/PrakIOT/uts/parse.php?Show=summary
     // Fungsi untuk menjalankan query dan mengambil data
     function fetchData($koneksi, $query) {
         $result = $koneksi->query($query);
@@ -27,7 +27,7 @@ if (isset($_GET["Show"]) && $_GET["Show"] === "summary") {
     // Menggabungkan data suhu maksimum dan kelembaban maksimum
     $nilaiSuhuMaxHumidMax = array_merge($nilaiSuhuMax, $nilaiHumidMax);
 
-    // Query untuk mendapatkan data dengan format bulan dan tahun unik
+    // Query untuk mendapatkan data dengan format bulan dan tahun 
     $queryMonthYear = "SELECT DISTINCT DATE_FORMAT(ts, '%c-%Y') AS month_year FROM tb_cuaca";
     $monthYearMax = fetchData($koneksi, $queryMonthYear);
 
